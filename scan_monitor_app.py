@@ -23,8 +23,7 @@ scanners    = config('Settings','Scanners').split(',')
 
 class Host(Base):
   __tablename__ = 'hosts'
-  id            = Column(Integer(10), primary_key=True)
-  address       = Column(String(15))
+  address       = Column(String(16), primary_key=True)
   duration      = Column(Integer)
   started       = Column(DateTime)
   stopped       = Column(DateTime)
@@ -42,6 +41,7 @@ class Host(Base):
 def start_scan(ip):
   if request.environ.get('REMOTE_ADDR') in scanners:
     session = Session()
+    session.query(Host).filter_by(address=ip).delete()
     session.add(Host(ip))
     session.commit()
     session.close()
@@ -50,8 +50,7 @@ def start_scan(ip):
 def stop_scan(ip):
   if request.environ.get('REMOTE_ADDR') in scanners:
     session = Session()
-    host    = session.query(Host).filter_by(address=ip).\
-                      order_by(desc(Host.id)).limit(1).one()
+    host    = session.query(Host).filter_by(address=ip).one()
     host.finished()
     session.merge(host)
     session.commit()
@@ -74,8 +73,7 @@ def show_active():
 def show_ip(ip):
   session = Session()
   try:
-    host    = session.query(Host).filter_by(address=ip).\
-                      order_by(desc(Host.id)).limit(1).one()
+    host    = session.query(Host).filter_by(address=ip).one()
   except:
     return None
   else:
@@ -94,7 +92,7 @@ def home_page():
     address       = request.POST.get('address','').strip()
     searched      = True
     session       = Session()
-    search_hosts  = session.query(Host).filter(Host.address.like('%' + address + '%')).all()
+    search_hosts  = session.query(Host).filter(and_(Host.stopped != None, Host.address.like('%' + address + '%'))).all()
   else:
     searched      = False
     search_hosts  = []
@@ -103,4 +101,5 @@ def home_page():
 
 if __name__ == '__main__':
   debug(True)
+  Host.metadata.create_all(engine)
   run(port=int(config('Settings', 'Port')), host=config('Settings', 'Host'))
