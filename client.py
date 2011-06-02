@@ -10,9 +10,9 @@ Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 import sys
 import os
 import time
-import getopt
 import re
-import xmlrpclib
+from urllib2      import urlopen
+from ConfigParser import ConfigParser
 
 
 help_message = '''
@@ -22,20 +22,21 @@ The help message goes here.
 start   = re.compile(r'user \w+\s:\stesting\s([0-9.]+)')
 finish  = re.compile(r'Finished testing ([0-9.]+).\sTime\s:\s([0-9.]+)')
 
+def config(stanza, option):
+  config = ConfigParser()
+  config.read(os.path.join(sys.path[0],'config.ini'))
+  return config.get(stanza, option)
+
 class Usage(Exception):
   def __init__(self, msg):
     self.msg = msg
 
-def watchfile(verbose, name, address):
+def watchfile(verbose, name, url):
   # Open the logfile and goto the end fo the file as it currently sits.  We
   # do not want old messages
   messages  = open(name, 'r')
   size      = os.stat(name)[6]
   messages.seek(size)
-  
-  # New we need to connect to the XMLRPC interface so that we can send the
-  # information over the wire.
-  proxy     = xmlrpclib.ServerProxy(address)
   
   while True:
     where   = messages.tell()
@@ -50,18 +51,18 @@ def watchfile(verbose, name, address):
         ip  = new[0]
         if ip is not None:
           print ip
-          proxy.add(ip)
+          urlopen('%s/api/start/%s' % (url,ip))
       elif len(end) > 0:
         ip  = end[0][0]
         dur = end[0][1]
         if ip is not None and dur is not None:
           print ip, dur
-          proxy.finish(ip, dur)
+          urlopen('%s/api/stop/%s' % (url,ip))
 
 def main(argv=None):
   verbose   = False
-  tailfile  = '/opt/nessus/var/nessus/logs/nessusd.messages'
-  address   = 'http://localhost:10240'
+  tailfile  = config('Client', 'watch_file')
+  address   = config('Client', 'base_url')
   if argv is None:
     argv = sys.argv
   try:
