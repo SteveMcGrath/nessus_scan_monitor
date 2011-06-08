@@ -73,17 +73,13 @@ If you want to run the WSGI script via Apache, then there are a few extra steps 
 1. Install the mod_wsgi apache module: `sudo apt-get install libapache2-mod-wsgi`
 2. Uncomment the following lines in scan\_monitor\_app.py:
 
-`
-    os.chdir(os.path.dirname(__file__))
-    application = bottle.default_app()
-`
+    `os.chdir(os.path.dirname(__file__))`
+    `application = bottle.default_app()`
 
 3. Comment out the following lines in scan\_monitor\_app.py:
 
-`
-    debug(True)
-    run(port=int(config('Settings', 'Port')), host=config('Settings', 'Host'))
-`
+    `debug(True)`
+    `run(port=int(config('Settings', 'Port')), host=config('Settings', 'Host'))`
 
 4. Create a new VHost in apache using this example config:
 
