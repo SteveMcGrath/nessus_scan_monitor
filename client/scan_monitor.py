@@ -51,13 +51,19 @@ def watchfile(verbose, name, url):
         ip  = new[0]
         if ip is not None:
           print ip
-          urlopen('%s/api/start/%s' % (url,ip))
+          try:
+            urlopen('%s/api/start/%s' % (url,ip))
+          except:
+            pass
       elif len(end) > 0:
         ip  = end[0][0]
         dur = end[0][1]
         if ip is not None and dur is not None:
           print ip, dur
-          urlopen('%s/api/stop/%s' % (url,ip))
+          try:
+            urlopen('%s/api/stop/%s' % (url,ip))
+          except:
+            pass
 
 def daemonize():
   pidfile = '/var/run/service_light.pid'
