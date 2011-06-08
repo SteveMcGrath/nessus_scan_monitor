@@ -11,59 +11,44 @@ import sys
 import os
 import time
 import re
-from urllib2      import urlopen
+import httplib
 from ConfigParser import ConfigParser
 
+# These flags are overriden by the config file.
+VERBOSE = False
+DAEMON = True
 
-help_message = '''
-The help message goes here.
-'''
+# Regexes used to determine when a scan has started or stopped.
+start = re.compile(r'user \w+\s:\stesting\s([0-9.]+)')
+finish = re.compile(r'Finished testing ([0-9.]+).\sTime\s:\s([0-9.]+)')
 
-start   = re.compile(r'user \w+\s:\stesting\s([0-9.]+)')
-finish  = re.compile(r'Finished testing ([0-9.]+).\sTime\s:\s([0-9.]+)')
+# The configuration file parser ;)
+config = ConfigParser()
+config.read(os.path.join(sys.path[0],'config.ini'))
 
-def config(stanza, option):
-  config = ConfigParser()
-  config.read(os.path.join(sys.path[0],'config.ini'))
-  return config.get(stanza, option)
-
-class Usage(Exception):
-  def __init__(self, msg):
-    self.msg = msg
-
-def watchfile(verbose, name, url):
-  # Open the logfile and goto the end fo the file as it currently sits.  We
-  # do not want old messages
-  messages  = open(name, 'r')
-  size      = os.stat(name)[6]
-  messages.seek(size)
-  
-  while True:
-    where   = messages.tell()
-    line    = messages.readline()
-    if not line:
-      time.sleep(1)
-      messages.seek(where)
+class API(object):
+  def __init__(self, host, ssl=False):
+    self.host = host
+    if ssl:
+      self.conn = httplib.HTTPSConnection
     else:
-      new   = start.findall(line)
-      end   = finish.findall(line)
-      if len(new) > 0:
-        ip  = new[0]
-        if ip is not None:
-          print ip
-          try:
-            urlopen('%s/api/start/%s' % (url,ip))
-          except:
-            pass
-      elif len(end) > 0:
-        ip  = end[0][0]
-        dur = end[0][1]
-        if ip is not None and dur is not None:
-          print ip, dur
-          try:
-            urlopen('%s/api/stop/%s' % (url,ip))
-          except:
-            pass
+      self.conn = httplib.HTTPConnection
+  
+  def _get(self, url):
+    http = self.conn(self.host)
+    http.request('GET', url)
+  
+  def start(self, ip):
+    url = '/api/start/%s' % ip
+    if VERBOSE:
+      print url
+    self._get(url)
+  
+  def stop(self, ip):
+    url = '/api/stop/%s' % ip
+    if VERBOSE:
+      print url
+    self._get(url)
 
 def daemonize():
   pidfile = '/var/run/service_light.pid'
@@ -98,11 +83,43 @@ def daemonize():
   dev_null = file('/dev/null', 'r')
   os.dup2(out_log.fileno(),   sys.stdout.fileno())
 
+def watchfile(verbose, name, api):
+  # Open the logfile and goto the end fo the file as it currently sits.  We
+  # do not want old messages
+  messages = open(name, 'r')
+  size = os.stat(name)[6]
+  messages.seek(size)  
+  
+  while True:
+    where   = messages.tell()
+    line    = messages.readline()
+    if not line:
+      time.sleep(1)
+      messages.seek(where)
+    else:
+      new   = start.findall(line)
+      end   = finish.findall(line)
+      if len(new) > 0:
+        ip  = new[0]
+        if ip is not None:
+            api.start(ip)
+      elif len(end) > 0:
+        ip  = end[0][0]
+        dur = end[0][1]
+        if ip is not None and dur is not None:
+            api.stop(ip)
+
 def main(argv=None):
-  tailfile  = config('Client', 'watch_file')
-  address   = config('Client', 'base_url')
-  daemonize()
-  watchfile(False, tailfile, address)
+  tailfile  = config.get('Client', 'watch_file')
+  host      = config.get('Client', 'host')
+  ssl       = config.getboolean('Client', 'ssl')
+  DAEMON    = config.getboolean('Client', 'daemonize')
+  VERBOSE   = config.getboolean('Client', 'verbose')
+  api       = API(host, ssl)
+  
+  if DAEMON:
+    daemonize()
+  watchfile(False, tailfile, api)
 
 if __name__ == "__main__":
   sys.exit(main())
