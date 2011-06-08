@@ -14,7 +14,7 @@ import bottle
 
 
 # This is needed for Apache to run the script in the right location.
-os.chdir(os.path.dirname(__file__))
+#os.chdir(os.path.dirname(__file__))
 
 
 def config(stanza, option):
@@ -107,8 +107,9 @@ def home_page():
 
 
 Host.metadata.create_all(engine)
-if config('Settings', 'WSGI').lower() == 'apache':
-  application = bottle.default_app()
-else:
-  debug(True)
-  run(port=int(config('Settings', 'Port')), host=config('Settings', 'Host'))
+# Uncomment this if you intent to run through apache.
+#application = bottle.default_app()
+
+# Uncomment these 2 lines if you intend to run standalone.
+debug(True)
+run(port=int(config('Settings', 'Port')), host=config('Settings', 'Host'))
