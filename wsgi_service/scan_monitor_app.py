@@ -10,12 +10,14 @@ import os
 import sys
 import datetime
 import json
+import bottle
 
 def config(stanza, option):
   config = ConfigParser()
   config.read('config.ini')
   return config.get(stanza, option)
 
+os.chdir(os.path.dirname(__file__))
 Base        = declarative_base()
 engine      = create_engine(config('Database', 'DBString'))
 Session     = sessionmaker(bind=engine)
@@ -24,7 +26,7 @@ scanners    = config('Settings','Scanners').split(',')
 class Host(Base):
   __tablename__ = 'hosts'
   address       = Column(String(16), primary_key=True)
-  duration      = Column(Integer)
+  duration      = Column(Integer(8))
   started       = Column(DateTime)
   stopped       = Column(DateTime)
   
@@ -99,7 +101,12 @@ def home_page():
   return template('main_page', active_hosts=active_hosts, searched=searched, 
                   search_hosts=search_hosts)
 
-if __name__ == '__main__':
-  debug(True)
-  Host.metadata.create_all(engine)
-  run(port=int(config('Settings', 'Port')), host=config('Settings', 'Host'))
+
+Host.metadata.create_all(engine)
+application = bottle.default_app()
+
+
+#if __name__ == '__main__':
+#  debug(True)
+#  Host.metadata.create_all(engine)
+#  run(port=int(config('Settings', 'Port')), host=config('Settings', 'Host'))
