@@ -59,35 +59,44 @@ def watchfile(verbose, name, url):
           print ip, dur
           urlopen('%s/api/stop/%s' % (url,ip))
 
+def daemonize():
+  pidfile = '/var/run/service_light.pid'
+  # do the UNIX double-fork magic, see Stevens' "Advanced 
+  # Programming in the UNIX Environment" for details (ISBN 0201563177)
+  try: 
+    pid = os.fork() 
+    if pid > 0:
+      # exit first parent
+      sys.exit(0) 
+  except OSError, e: 
+    print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror) 
+    sys.exit(1)
+  # decouple from parent environment
+  os.chdir("/") 
+  os.setsid() 
+  os.umask(0) 
+  # do second fork
+  try: 
+    pid = os.fork() 
+    if pid > 0:
+      # exit from second parent, print eventual PID before
+      #print "Daemon PID %d" % pid
+      open(pidfile, 'w').write('%d' % pid)
+      sys.exit(0) 
+  except OSError, e: 
+    print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror) 
+    sys.exit(1) 
+  # Redirect all console data to logfiles
+  out_log = file('/var/log/service_light.log', 'a+')
+  err_log = file('/var/log/service_light.err', 'a+', 0)
+  dev_null = file('/dev/null', 'r')
+  os.dup2(out_log.fileno(),   sys.stdout.fileno())
+
 def main(argv=None):
-  verbose   = False
   tailfile  = config('Client', 'watch_file')
   address   = config('Client', 'base_url')
-  if argv is None:
-    argv = sys.argv
-  try:
-    try:
-      opts, args = getopt.getopt(argv[1:], 'hf:r:v', 
-                                 ['help', 'file=', 'remote=', 'verbose'])
-    except getopt.error, msg:
-      raise Usage(msg)
-  
-    # option processing
-    for option, value in opts:
-      if option in ('-v', '--verbose'):
-        verbose   = True
-      if option in ('-h', '--help'):
-        raise Usage(help_message)
-      if option in ('-f', '--file'):
-        tailfile  = value
-      if option in ('-r', '--remote'):
-        address   = value
-  
-  except Usage, err:
-    print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
-    print >> sys.stderr, "\t for help use --help"
-    return 2
-  watchfile(verbose, tailfile, address)
+  daemonize()
+  watchfile(False, tailfile, address)
 
 if __name__ == "__main__":
   sys.exit(main())
