@@ -35,7 +35,7 @@ If you completed the above steps properly, then you should receive the following
 
 If this is the case, then the server is running!  Go ahead and open a browser and goto the application:
 
-![wsgi_home](doc_data/wsgi_home.png)
+![wsgi_home](https://github.com/SteveMcGrath/nessus_scan_monitor/raw/master/doc_data/wsgi_home.png)
 
 As this is a test endironment and we do not have any client up (yet) we can mimick the behaviour of a client by using a browser window to interact with the api.  Open a new browser and goto the following url:
 
@@ -43,7 +43,7 @@ As this is a test endironment and we do not have any client up (yet) we can mimi
 
 Now if you refresh the page of the browser window with the application up, you should see something similar to this:
 
-![wsgi_added](doc_data/wsgi_added.png)
+![wsgi_added](https://github.com/SteveMcGrath/nessus_scan_monitor/raw/master/doc_data/wsgi_added.png)
 
 Now if we tell the application that the scan has stopped, we can then search for it.  To tell the application that the scan has "stopped" enter the following url into your second browser window:
 
@@ -51,7 +51,7 @@ Now if we tell the application that the scan has stopped, we can then search for
 
 If you refresh your browser window with the application homepage, you should see what looks like the first screen.  The currently being scanned portion of the page has gone away.  However since you now have a "completed scan" in the database, we can search for it.  In the example below, I simply searched for '127' and got the response below:
 
-![wsgi_search](doc_data/wsgi_search.png)
+![wsgi_search](https://github.com/SteveMcGrath/nessus_scan_monitor/raw/master/doc_data/wsgi_search.png)
 
 Installing the Client
 ---------------------
