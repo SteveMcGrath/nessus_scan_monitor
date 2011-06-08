@@ -12,12 +12,16 @@ import datetime
 import json
 import bottle
 
+
+# This is needed for Apache to run the script in the right location.
+os.chdir(os.path.dirname(__file__))
+
+
 def config(stanza, option):
   config = ConfigParser()
   config.read('config.ini')
   return config.get(stanza, option)
 
-os.chdir(os.path.dirname(__file__))
 Base        = declarative_base()
 engine      = create_engine(config('Database', 'DBString'))
 Session     = sessionmaker(bind=engine)
@@ -103,10 +107,8 @@ def home_page():
 
 
 Host.metadata.create_all(engine)
-application = bottle.default_app()
-
-
-#if __name__ == '__main__':
-#  debug(True)
-#  Host.metadata.create_all(engine)
-#  run(port=int(config('Settings', 'Port')), host=config('Settings', 'Host'))
+if config('Settings', 'WSGI').lower() == 'apache':
+  application = bottle.default_app()
+else:
+  debug(True)
+  run(port=int(config('Settings', 'Port')), host=config('Settings', 'Host'))
