@@ -1,5 +1,11 @@
-from fabric.api     import *
+from fabric.api import *
 from fabric.contrib import files
+
+# If it exists, pull in the global roldefs
+try:
+  from menv import *
+except:
+  pass
 
 def update():
   # First we need to kill off any running copies of scan_monitor
