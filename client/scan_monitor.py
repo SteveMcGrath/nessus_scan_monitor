@@ -51,7 +51,7 @@ class API(object):
     self._get(url)
 
 def daemonize():
-  pidfile = '/var/run/service_light.pid'
+  pidfile = '/var/run/scan_monitor.pid'
   # do the UNIX double-fork magic, see Stevens' "Advanced 
   # Programming in the UNIX Environment" for details (ISBN 0201563177)
   try: 
@@ -78,8 +78,8 @@ def daemonize():
     print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror) 
     sys.exit(1) 
   # Redirect all console data to logfiles
-  out_log = file('/var/log/service_light.log', 'a+')
-  err_log = file('/var/log/service_light.err', 'a+', 0)
+  out_log = file('/var/log/scan_monitor.log', 'a+')
+  err_log = file('/var/log/scan_monitor.err', 'a+', 0)
   dev_null = file('/dev/null', 'r')
   os.dup2(out_log.fileno(),   sys.stdout.fileno())
 
