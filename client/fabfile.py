@@ -15,10 +15,10 @@ def update():
   # Now we need to stage all thge files onto the remote scanner.
   put('scan_monitor.py', '/tmp/scan_monitor.py')
   put('smm.py', '/tmp/smm.py')
-  put('config.ini', '/tmp/sm_config.py')
+  put('config.ini', '/tmp/sm_config.ini')
   
   # Then we move everything into place.
-  sudo('mv /tmp/sm_config.ini /top/scan_monitor/config.ini')
+  sudo('mv /tmp/sm_config.ini /opt/scan_monitor/config.ini')
   sudo('mv /tmp/smm.py /opt/scan_monitor/smm.py')
   sudo('mv /tmp/scan_monitor.py /opt/scan_monitor/scan_monitor')
   
