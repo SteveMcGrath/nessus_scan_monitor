@@ -66,6 +66,7 @@ def stop_scan(ip):
 def show_active():
   session = Session()
   hosts   = session.query(Host).filter_by(stopped=None).all()
+  session.close()
   resp    = []
   for host in hosts:
     resp.append({
@@ -80,7 +81,9 @@ def show_ip(ip):
   session = Session()
   try:
     host    = session.query(Host).filter_by(address=ip).one()
+    session.close()
   except:
+    session.close()
     return None
   else:
     return json.dumps({
