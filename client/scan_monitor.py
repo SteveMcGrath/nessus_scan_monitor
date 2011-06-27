@@ -36,7 +36,10 @@ class API(object):
   
   def _get(self, url):
     http = self.conn(self.host)
-    http.request('GET', url)
+    try:
+      http.request('GET', url)
+    except:
+      pass
   
   def start(self, ip):
     url = '/api/start/%s' % ip
