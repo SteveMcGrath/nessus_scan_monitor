@@ -1,6 +1,10 @@
 Nessus Scan Monitor
 ===================
 
+NOTE: This is the Version 2 Branch and most of this information no longer
+applies.  The documentation will be updated once a working version has been
+built.
+
 What does it do?
 ----------------
 Nessus scan monitor will watch the nessusd.messages log on all of the nessus scanners that you have in your environment and will keep a central repository of all of the IPs it has scanned, when they were last scanned, how long the scan took, and if there are any scans running currently.
